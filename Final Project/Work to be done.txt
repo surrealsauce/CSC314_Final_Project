@@ -1,0 +1,45 @@
+1: Core Systems
+  Focus: Game loop, health management, and hubris integration.
+
+
+    Game Loop:
+    Finalize the main game loop to iterate through all 10 encounters in sequence.
+    Ensure encounter transitions are smooth, with health and hubris updated as needed.
+    Health and Hubris Management:
+    Implement the decrement_health subroutine.
+    Update the game state (health and hubris) based on encounter outcomes and player choices.
+    Ensure health is displayed after every encounter.
+    End-Game Logic:
+    Complete the determine_hubris subroutine to select the appropriate ending (good, neutral, or bad).
+    Integrate the ending messages and ensure proper termination.
+    
+
+2: Encounter Design
+  Focus: Designing the logic and flow for each unique encounter.
+
+
+  Encounter Logic:
+  Finalize the implementation of encounters 1–10, following the provided narrative and decision points.
+  Ensure that each encounter updates health or hubris where applicable.
+  Use subprograms like get_choice to process player input effectively.
+  Special Encounters:
+  Develop Encounter 7 (health-up decision) and Encounter 10 (final encounter).
+  Ensure these encounters have clear player choices and impactful outcomes.
+  Text Display:
+  Verify and polish the messages for all encounters to ensure clarity and engagement.
+
+3: Subprograms
+  Focus: Developing reusable subprograms and modular functionality.
+
+
+  Subprogram Development:
+  Implement reusable subprograms for:
+  get_choice: Captures and validates player input.
+  print_health: Displays the player's current health.
+  decrement_health: Decreases health and checks for game-over conditions.
+  Ensure modularity to simplify integration into encounters.
+  Hubris Updates:
+  Create a subprogram to update hubris based on encounter outcomes.
+  Battle Subprogram:
+  Finalize the battle subprogram for encounters with combat scenarios.
+  Implement logic to evaluate player success based on choices and outcomes.
