@@ -59,7 +59,6 @@ segment .data
 	health_tracker_msg      db  "Current Health: ", 0
 	health_loss_msg         db  "You lost health.", 0
 	health_gain_msg         db  "You gained health.", 0
-	;health dd 3					;Player health
 	seed dd 0					;Stores seed value for dice roll
 	multiplier dd 1103515245	;Multiplier for LCG (Linear Congruential Generator), value used for rand in C
 	increment dd 12345			;Increment for LCG
@@ -447,7 +446,7 @@ decrement_health:
     mov eax, health_loss_msg
     call print_string
     call print_nl
-    cmp byte [health], 0
+    cmp dword [health], 0
     jle death
     ret
 
@@ -498,7 +497,7 @@ battle:
     je battle_fight
     cmp dword [choice], '2'       ; Run
     je battle_run
-    cmp byte [choice], '3'       ; Taunt
+    cmp dword [choice], '3'       ; Taunt
     je battle_taunt
 
     ; Invalid choice handling
