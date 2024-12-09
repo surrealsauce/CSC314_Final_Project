@@ -19,8 +19,19 @@ segment .data
     encounter_3_msg         db  "A cloaked figure appears before you, their identity shrouded in darkness, but somehow familiar.. Choose wisely.", 0
     encounter_3_msg_2       db  "'A choice must be made...' the figure utters as it extends both arms towards you. As its fingers unfurl you see two small objects in each hand", 0
     encounter_3_msg_3       db  "In the left hand there is a multifaceted gem, glowing blue; in the right hand, a small smooth and ordinary stone.", 0
-    encounter_4_msg         db  "You hear strange whispers as you approach a glowing door. Do you enter?", 0
+    encounter_4_msg         db  "You hear strange whispers as you approach a glowing door. Do you enter? Yes(1) No(2)", 0
+	encounter_4_msg_2		db 	"You slowly reach toward to door handle. As you draw near, the door pulls you in with a magnitude of force. You feel your whole body strain under the pressure as everything turns to black..",0
+	encounter_4_msg_22		db  "Just as fast as you were pulled in you appear on the other side, you feel an ache over your body but have no discernable wounds. You continue onward.",0
+	encounter_4_msg_3		db  "You know a trap when you see one. You turn to go the other way when a whisper summons you back. You turn around and see the door twist and form into a tall dark figure with a long shroud.",0
+	encounter_4_msg_33		db  "You feel a chill cast over your whole body as the spirit beckons you toward it.",0
     encounter_5_msg         db  "A vast pit opens in front of you. You must find a way to cross.", 0
+	encounter_5_msg_opt1	db	"1. You back up, brace yourself, then run as hard as you can before leaping over the gap",0
+	encounter_5_msg_opt2	db 	"2. You daftly run against the wall, making your way over the pit",0
+	encounter_5_msg_opt3	db 	"3. You close your eyes and walk forward",0
+	encounter_5_msg_fail	db	"Despite your best efforts you fall short. Your stomach turns and you scream as you plummet toward your certain death.",0
+	encounter_5_msg_fail_2	db 	"You continue falling for what feels like an hour, now quite bored with it. Suddenly your thrown to the floor, shaken up, but happy to be on the ground.",0
+	encounter_5_msg_success	db	"You hold your breath and walk forward waiting for the drop, but it never comes? You open your eyes and are shocked to find yourself standing, seemingly floating in the middle of the pit.",0
+	encounter_5_msg_success2 db "You realize there is an invisible bridge leading to the other side. You continue onward unscathed.",0
     encounter_6_msg         db  "You encounter a monstrous beast blocking your path. Prepare to fight!", 0
     encounter_7_msg         db  "You come across another adventurer who has been mortally wounded... They motion you over to them in a desperate fashion.", 0
     encounter_7_msg_2       db  "'Please, help me; I have a healing serum in my bag. If you can get it for me, I might be able to survive.'", 0
@@ -227,15 +238,84 @@ encounter_4:
     mov eax, encounter_4_msg
     call print_string
     call print_nl
-    inc dword [encounter_number]
+	call get_choice
+	cmp eax, 1
+	je encounter_4_yes
+	cmp eax, 2
+	je encounter_4_no
+    mov eax, error_msg
+	call print_string
+	call print_nl
     jmp game_loop
+
+encounter_4_yes:
+	mov eax, encounter_4_msg_2
+	call print_string
+	call print_nl
+	mov eax, encounter_4_msg_22
+	call print_string
+	call print_nl
+	call decrement_health
+	inc dword [encounter_number]
+	jmp game_loop
+encounter_4_no:
+	mov eax, encounter_4_msg_3
+	call print_string
+	call print_nl
+	mov eax, encounter_4_msg_33
+	call print_string
+	call print_nl
+	call battle
+	inc dword [encounter_number]
+	jmp game_loop
 
 encounter_5:
     mov eax, encounter_5_msg
     call print_string
     call print_nl
-    inc dword [encounter_number]
+	mov eax, encounter_5_msg_opt1
+    call print_string
+    call print_nl
+	mov eax, encounter_5_msg_opt2
+    call print_string
+    call print_nl
+	mov eax, encounter_5_msg_opt3
+    call print_string
+    call print_nl
+
+	call get_choice
+	cmp eax, 1
+	je encounter_5_fail
+	cmp eax, 2
+	je encounter_5_fail
+	cmp eax, 3
+	je encounter_5_success
+
+    mov eax, error_msg
+	call print_string
+	call print_nl
     jmp game_loop
+
+encounter_5_fail:
+	mov eax, encounter_5_msg_fail
+	call print_string
+	call print_nl
+	mov eax, encounter_5_msg_fail_2
+	call print_string
+	call print_nl
+	call decrement_health
+	inc dword [encounter_number]
+	jmp game_loop
+
+encounter_5_success:
+	mov eax, encounter_5_msg_success
+	call print_string
+	call print_nl
+	mov eax, encounter_5_msg_success2
+	call print_string
+	call print_nl
+	inc dword [encounter_number]
+	jmp game_loop
 
 encounter_6:
     mov eax, encounter_6_msg
@@ -384,6 +464,8 @@ get_choice:
     je valid_choice
     cmp eax, 2               ; Check if input is 2
     je valid_choice
+	cmp eax, 3				 ; Check if input is 3
+	je valid_choice
     ; Invalid input handling
     mov eax, invalidchoice_msg
     call print_string
@@ -493,11 +575,11 @@ battle:
     call print_nl
     call get_choice
 
-    cmp dword [choice], '1'       ; Fight
+    cmp dword [choice], 1       ; Fight
     je battle_fight
-    cmp dword [choice], '2'       ; Run
+    cmp dword [choice], 2       ; Run
     je battle_run
-    cmp dword [choice], '3'       ; Taunt
+    cmp dword [choice], 3       ; Taunt
     je battle_taunt
 
     ; Invalid choice handling
