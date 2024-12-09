@@ -59,20 +59,21 @@ segment .data
 	health_tracker_msg      db  "Current Health: ", 0
 	health_loss_msg         db  "You lost health.", 0
 	health_gain_msg         db  "You gained health.", 0
+	;health dd 3					;Player health
 	seed dd 0					;Stores seed value for dice roll
 	multiplier dd 1103515245	;Multiplier for LCG (Linear Congruential Generator), value used for rand in C
 	increment dd 12345			;Increment for LCG
-	modulus dd 0x7FFFFFFF		;Modulus (2^31 - 1)
+	modulus dd 0x7FFFFFFF		;Modulus (2^31 - 1), 0x7FFFFFFF is the highest possible positive integer
 
 segment .bss
-    health                  resb 1          ; Player health
-    hubris                  resb 1          ; Player hubris (0 = Bad, 1 = Neutral, 2 = Good)
-    encounter_number        resb 1          ; Current encounter number
-    choice                  resb 1          ; Buffer for player input
-    right_choice_count      resb 1          ; Count of consecutive right choices
-    item_choice             resb 1          ; Stores player's choice for the hidden room item
-	branch_tracker          resb 1          ; 0 = Not set, 1 = Left path, 2 = Right path
-	attempts                resb 1          ; Tracks number of attempts in the hidden room
+    health                  resd 1          ; Player health
+    hubris                  resd 1          ; Player hubris (0 = Bad, 1 = Neutral, 2 = Good)
+    encounter_number        resd 1          ; Current encounter number
+    choice                  resd 1          ; Buffer for player input
+    right_choice_count      resd 1          ; Count of consecutive right choices
+    item_choice             resd 1          ; Stores player's choice for the hidden room item
+	branch_tracker          resd 1          ; 0 = Not set, 1 = Left path, 2 = Right path
+	attempts                resd 1          ; Tracks number of attempts in the hidden room
 
 
 segment .text
@@ -83,11 +84,11 @@ asm_main:
     mov ebp, esp
 
     ; Initialize game state
-    mov byte [health], 3                  ; Starting health
-    mov byte [hubris], 1                  ; Neutral hubris
-    mov byte [encounter_number], 1        ; Start at first encounter
-    mov byte [right_choice_count], 0      ; Initialize right path counter
-	mov byte [branch_tracker], 0       ; Ensure branch_tracker starts at 0
+	mov dword [health], 3
+    mov dword [hubris], 1                  ; Neutral hubris
+    mov dword [encounter_number], 1        ; Start at first encounter
+    mov dword [right_choice_count], 0      ; Initialize right path counter
+	mov dword [branch_tracker], 0       ; Ensure branch_tracker starts at 0
 
     ; Display title and intro
     mov eax, title_msg
@@ -99,7 +100,7 @@ asm_main:
 
 game_loop:
     ; Check if health <= 0
-    cmp byte [health], 0
+    cmp dword [health], 0
     jle death
 
     ; Display health
@@ -115,29 +116,29 @@ game_loop:
     call print_nl
 
     ; Determine ending if all 10 encounters have been completed
-    cmp byte [encounter_number], 11
+    cmp dword [encounter_number], 11
     jge determine_ending
 
     ; Process encounters
-    cmp     byte [encounter_number], 1
+    cmp     dword [encounter_number], 1
     je      encounter_1
-    cmp     byte [encounter_number], 2
+    cmp     dword [encounter_number], 2
     je      encounter_2
-    cmp     byte [encounter_number], 3
+    cmp     dword [encounter_number], 3
     je      encounter_3
-    cmp     byte [encounter_number], 4
+    cmp     dword [encounter_number], 4
     je      encounter_4
-    cmp     byte [encounter_number], 5
+    cmp     dword [encounter_number], 5
     je      encounter_5
-    cmp     byte [encounter_number], 6
+    cmp     dword [encounter_number], 6
     je      encounter_6
-    cmp     byte [encounter_number], 7
+    cmp     dword [encounter_number], 7
     je      encounter_7
-    cmp     byte [encounter_number], 8
+    cmp     dword [encounter_number], 8
     je      encounter_8
-    cmp     byte [encounter_number], 9
+    cmp     dword [encounter_number], 9
     je      encounter_9
-    cmp     byte [encounter_number], 10
+    cmp     dword [encounter_number], 10
     je      final_encounter
 
     jmp     game_loop
@@ -149,9 +150,9 @@ encounter_1:
     call print_string         ; Print the encounter message
     call get_choice           ; Get the player's choice
 
-    cmp byte [choice], 1      ; Check if the choice is '1' (Left)
+    cmp dword [choice], 1      ; Check if the choice is '1' (Left)
     je set_left_branch
-    cmp byte [choice], 2      ; Check if the choice is '2' (Right)
+    cmp dword [choice], 2      ; Check if the choice is '2' (Right)
     je set_right_branch
 
     ; Invalid choice handling
@@ -160,23 +161,23 @@ encounter_1:
     jmp encounter_1           ; Retry the encounter
 
 set_left_branch:
-    mov byte [branch_tracker], 1      ; Set Left branch
-    inc byte [encounter_number]       ; Progress to Encounter 2
+    mov dword [branch_tracker], 1      ; Set Left branch
+    inc dword [encounter_number]       ; Progress to Encounter 2
     jmp game_loop
 
 set_right_branch:
-    mov byte [branch_tracker], 2      ; Set Right branch
-    inc byte [right_choice_count]     ; Increment Right choice count
-    cmp byte [right_choice_count], 5
+    mov dword [branch_tracker], 2      ; Set Right branch
+    inc dword [right_choice_count]     ; Increment Right choice count
+    cmp dword [right_choice_count], 5
     je hidden_room                    ; Trigger hidden room if 5 Right choices
-    inc byte [encounter_number]       ; Progress to Encounter 2
+    inc dword [encounter_number]       ; Progress to Encounter 2
     jmp game_loop
 
 encounter_2:
     ; Display content based on branch_tracker
-    cmp byte [branch_tracker], 1
+    cmp dword [branch_tracker], 1
     je encounter_2L_logic
-    cmp byte [branch_tracker], 2
+    cmp dword [branch_tracker], 2
     je encounter_2R_logic
 
     ; Fallback for unexpected errors
@@ -191,7 +192,7 @@ encounter_2L_logic:
     call print_nl
 
     ; Progress to next encounter
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_2R_logic:
@@ -200,12 +201,12 @@ encounter_2R_logic:
     call print_nl
 
     ; Increment right choice count for Easter Egg
-    inc byte [right_choice_count]
-    cmp byte [right_choice_count], 5
+    inc dword [right_choice_count]
+    cmp dword [right_choice_count], 5
     je hidden_room                  ; Trigger secret room if count reaches 5
 
     ; Progress to next encounter
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 
@@ -220,21 +221,21 @@ encounter_3:
     call print_string
     call print_nl
     call get_choice
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_4:
     mov eax, encounter_4_msg
     call print_string
     call print_nl
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_5:
     mov eax, encounter_5_msg
     call print_string
     call print_nl
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_6:
@@ -242,7 +243,7 @@ encounter_6:
     call print_string
     call print_nl
     call battle
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_7:
@@ -256,21 +257,21 @@ encounter_7:
     call print_string
 	call print_nl
     call get_choice
-    cmp byte [choice], '1'
+    cmp dword [choice], '1'
     je doom_adventurer
-    cmp byte [choice], '2'
+    cmp dword [choice], '2'
     je  save_adventurer
     jmp game_loop
 
 doom_adventurer:
-    inc byte [health]
-    mov byte [hubris], 2          ; Hubris = BAD
-    inc byte [encounter_number]
+    inc dword [health]
+    mov dword [hubris], 2          ; Hubris = BAD
+    inc dword [encounter_number]
     jmp game_loop
 
 save_adventurer:
-    mov byte [hubris], 1          ; Hubris = GOOD
-    inc byte [encounter_number]
+    mov dword [hubris], 1          ; Hubris = GOOD
+    inc dword [encounter_number]
     jmp game_loop
 
 
@@ -278,14 +279,14 @@ encounter_8:
     mov eax, encounter_8_msg
     call print_string
     call print_nl
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 encounter_9:
     mov eax, encounter_9_msg
     call print_string
     call print_nl
-    inc byte [encounter_number]
+    inc dword [encounter_number]
     jmp game_loop
 
 final_encounter:
@@ -307,25 +308,25 @@ hidden_room:
     call print_nl
 
     ; Reset right_choice_count
-    mov byte [right_choice_count], 0
+    mov dword [right_choice_count], 0
 
     ; Display item selection prompt
     mov eax, item_choice_msg          ; Message listing items to choose
     call print_string
     call print_nl
 
-    mov byte [attempts], 3            ; Allow up to 3 attempts
+    mov dword [attempts], 3            ; Allow up to 3 attempts
 
 hidden_room_loop:
     call get_choice                   ; Get player's choice
 
     ; Check the player's choice
-    cmp byte [choice], 3              ; Correct item is the staff (option 3)
+    cmp dword [choice], 3              ; Correct item is the staff (option 3)
     je correct_item
 
     ; Decrement attempts and check for failure
-    dec byte [attempts]
-    cmp byte [attempts], 0
+    dec dword [attempts]
+    cmp dword [attempts], 0
     je failed_attempts
 
     ; Display incorrect choice message
@@ -344,7 +345,7 @@ failed_attempts:
     mov eax, failed_item_msg          ; Message for failing all attempts
     call print_string
     call print_nl
-    mov byte [encounter_number], 1    ; Send player back to starting room
+    mov dword [encounter_number], 1    ; Send player back to starting room
     jmp game_loop
 
 good_ending:
@@ -414,11 +415,11 @@ update_hubris:
     call print_string
 
     ; Determine and Display Hubris Level
-    cmp byte [hubris], 0
+    cmp dword [hubris], 0
     je hubris_bad
-    cmp byte [hubris], 1
+    cmp dword [hubris], 1
     je hubris_neutral
-    cmp byte [hubris], 2
+    cmp dword [hubris], 2
     je hubris_good
     ret
 
@@ -442,7 +443,7 @@ hubris_bad:
 
 ; Subprogram: Decrement Health
 decrement_health:
-    dec byte [health]
+    dec dword [health]
     mov eax, health_loss_msg
     call print_string
     call print_nl
@@ -452,7 +453,7 @@ decrement_health:
 
 ; Subprogram: Increment Health
 increment_health:
-    inc byte [health]
+    inc dword [health]
     mov eax, health_gain_msg
     call print_string
     call print_nl
@@ -462,9 +463,9 @@ determine_ending:
     call update_health          ; Display final health
     call update_hubris          ; Display final hubris
 
-    cmp byte [hubris], 2
+    cmp dword [hubris], 2
     je good_ending
-    cmp byte [hubris], 1
+    cmp dword [hubris], 1
     je neutral_ending
     jmp bad_ending
 
@@ -493,9 +494,9 @@ battle:
     call print_nl
     call get_choice
 
-    cmp byte [choice], '1'       ; Fight
+    cmp dword [choice], '1'       ; Fight
     je battle_fight
-    cmp byte [choice], '2'       ; Run
+    cmp dword [choice], '2'       ; Run
     je battle_run
     cmp byte [choice], '3'       ; Taunt
     je battle_taunt
